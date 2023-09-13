@@ -41,7 +41,7 @@ The following two resource groups will be created and populated with networking 
 
    ```bash
    # [This takes less than one minute to run.]
-   az group create -n rg-enterprise-networking-hubs -l centralus
+   az group create -n rg-enterprise-networking-hubs -l Australiaeast
    ```
 
 1. Create the networking spokes resource group.
@@ -50,7 +50,7 @@ The following two resource groups will be created and populated with networking 
 
    ```bash
    # [This takes less than one minute to run.]
-   az group create -n rg-enterprise-networking-spokes -l centralus
+   az group create -n rg-enterprise-networking-spokes -l Australiaeast
    ```
 
 1. Create the regional network hub.
@@ -63,7 +63,7 @@ The following two resource groups will be created and populated with networking 
 
    ```bash
    # [This takes about six minutes to run.]
-   az deployment group create -g rg-enterprise-networking-hubs -f networking/hub-default.bicep -p location=eastus2
+   az deployment group create -g rg-enterprise-networking-hubs -f networking/hub-default.bicep -p location=Australiaeast
    ```
 
    The hub creation will emit the following:
@@ -79,7 +79,7 @@ The following two resource groups will be created and populated with networking 
    echo RESOURCEID_VNET_HUB: $RESOURCEID_VNET_HUB
 
    # [This takes about four minutes to run.]
-   az deployment group create -g rg-enterprise-networking-spokes -f networking/spoke-BU0001A0008.bicep -p location=eastus2 hubVnetResourceId="${RESOURCEID_VNET_HUB}"
+   az deployment group create -g rg-enterprise-networking-spokes -f networking/spoke-BU0001A0008.bicep -p location=australiaeast hubVnetResourceId="${RESOURCEID_VNET_HUB}"
    ```
 
    The spoke creation will emit the following:
