@@ -29,7 +29,7 @@ In addition to ACR being deployed to support bootstrapping, this is where any ot
 
    ```bash
    # [This takes less than one minute.]
-   az group create --name rg-bu0001a0008 --location eastus2
+   az group create --name rg-bu0001a0008 --location australiaeast
    ```
 
 1. Get the AKS cluster spoke virtual network resource ID.
@@ -45,7 +45,7 @@ In addition to ACR being deployed to support bootstrapping, this is where any ot
 
    ```bash
    # [This takes about four minutes.]
-   az deployment group create -g rg-bu0001a0008 -f acr-stamp.bicep -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE_AKS_BASELINE} location=eastus2
+   az deployment group create -g rg-bu0001a0008 -f acr-stamp.bicep -p targetVnetResourceId=${RESOURCEID_VNET_CLUSTERSPOKE_AKS_BASELINE} location=australiaeast
    ```
 
 1. Import cluster management images to your container registry.

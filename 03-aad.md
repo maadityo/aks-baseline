@@ -18,7 +18,7 @@ This does not configure anything related to workload identity. This configuratio
 
 ## Steps
 
-> :book: The Contoso Bicycle Azure AD team requires all admin access to AKS clusters be security-group based. This applies to the new AKS cluster that is being built for Application ID a0008 under the BU0001 business unit. Kubernetes RBAC will be AAD-backed and access granted based on users' AAD group membership(s).
+> :book: The Contoso Bicycle Azure AD team requires all admin access to AKS clusters be security-group based. This applies to the new AKS cluster that is being built for Application ID dev under the BU0001 business unit. Kubernetes RBAC will be AAD-backed and access granted based on users' AAD group membership(s).
 
 1. Query and save your Azure subscription's tenant id.
 
@@ -32,7 +32,7 @@ This does not configure anything related to workload identity. This configuratio
    > :bulb: Skip the `az login` command if you plan to use your current user account's Azure AD tenant for Kubernetes authorization. _Using the same tenant is common._
 
    ```bash
-   az login -t <Replace-With-ClusterApi-AzureAD-TenantId> --allow-no-subscriptions
+   az login -t c3b638bb-9236-4172-a973-7ed2ed6fa835 --allow-no-subscriptions
    export TENANTID_K8SRBAC_AKS_BASELINE=$(az account show --query tenantId -o tsv)
    echo TENANTID_K8SRBAC_AKS_BASELINE: $TENANTID_K8SRBAC_AKS_BASELINE
    ```
@@ -41,14 +41,14 @@ This does not configure anything related to workload identity. This configuratio
 
    If you already have a security group that is appropriate for your cluster's admin service accounts, use that group and don't create a new one. If using your own group or your Azure AD administrator created one for you to use; you will need to update the group name and ID throughout the reference implementation.
    ```bash
-   export AADOBJECTID_GROUP_CLUSTERADMIN_AKS_BASELINE=[Paste your existing cluster admin group Object ID here.]
+   export AADOBJECTID_GROUP_CLUSTERADMIN_AKS_BASELINE=[98365298-009b-4672-9a0d-ed3fc9b3d121
    echo AADOBJECTID_GROUP_CLUSTERADMIN_AKS_BASELINE: $AADOBJECTID_GROUP_CLUSTERADMIN_AKS_BASELINE
    ```
 
    If you want to create a new one instead, you can use the following code:
 
    ```bash
-   export AADOBJECTID_GROUP_CLUSTERADMIN_AKS_BASELINE=$(az ad group create --display-name 'cluster-admins-bu0001a000800' --mail-nickname 'cluster-admins-bu0001a000800' --description "Principals in this group are cluster admins in the bu0001a000800 cluster." --query id -o tsv)
+   export AADOBJECTID_GROUP_CLUSTERADMIN_AKS_BASELINE=$(az ad group create --display-name 'cluster-admins-dev' --mail-nickname 'cluster-admins-dev' --description "Principals in this group are cluster admins in the dev cluster." --query id -o tsv)
    echo AADOBJECTID_GROUP_CLUSTERADMIN_AKS_BASELINE: $AADOBJECTID_GROUP_CLUSTERADMIN_AKS_BASELINE
    ```
 
@@ -62,8 +62,8 @@ This does not configure anything related to workload identity. This configuratio
 
    ```bash
    TENANTDOMAIN_K8SRBAC=$(az ad signed-in-user show --query 'userPrincipalName' -o tsv | cut -d '@' -f 2 | sed 's/\"//')
-   AADOBJECTNAME_USER_CLUSTERADMIN=bu0001a000800-admin
-   AADOBJECTID_USER_CLUSTERADMIN=$(az ad user create --display-name=${AADOBJECTNAME_USER_CLUSTERADMIN} --user-principal-name ${AADOBJECTNAME_USER_CLUSTERADMIN}@${TENANTDOMAIN_K8SRBAC} --force-change-password-next-sign-in --password ChangeMebu0001a0008AdminChangeMe --query id -o tsv)
+   AADOBJECTNAME_USER_CLUSTERADMIN=dev-admin
+   AADOBJECTID_USER_CLUSTERADMIN=$(az ad user create --display-name=${AADOBJECTNAME_USER_CLUSTERADMIN} --user-principal-name ${AADOBJECTNAME_USER_CLUSTERADMIN}@${TENANTDOMAIN_K8SRBAC} --force-change-password-next-sign-in --password ChangeMebu0001devAdminChangeMe --query id -o tsv)
    echo TENANTDOMAIN_K8SRBAC: $TENANTDOMAIN_K8SRBAC
    echo AADOBJECTNAME_USER_CLUSTERADMIN: $AADOBJECTNAME_USER_CLUSTERADMIN
    echo AADOBJECTID_USER_CLUSTERADMIN: $AADOBJECTID_USER_CLUSTERADMIN
@@ -82,8 +82,8 @@ This does not configure anything related to workload identity. This configuratio
 1. Create/identify the Azure AD security group that is going to be a namespace reader. _Optional_
 
    ```bash
-   export AADOBJECTID_GROUP_A0008_READER_AKS_BASELINE=$(az ad group create --display-name 'cluster-ns-a0008-readers-bu0001a000800' --mail-nickname 'cluster-ns-a0008-readers-bu0001a000800' --description "Principals in this group are readers of namespace a0008 in the bu0001a000800 cluster." --query id -o tsv)
-   echo AADOBJECTID_GROUP_A0008_READER_AKS_BASELINE: $AADOBJECTID_GROUP_A0008_READER_AKS_BASELINE
+   export AADOBJECTID_GROUP_dev_READER_AKS_BASELINE=$(az ad group create --display-name 'cluster-ns-dev-readers-dev' --mail-nickname 'cluster-ns-dev-readers-dev' --description "Principals in this group are readers of namespace dev in the dev cluster." --query id -o tsv)
+   echo AADOBJECTID_GROUP_dev_READER_AKS_BASELINE: $AADOBJECTID_GROUP_dev_READER_AKS_BASELINE
    ```
 
 ## Kubernetes RBAC backing store
@@ -92,7 +92,7 @@ AKS supports backing Kubernetes with Azure AD in two different modalities. One i
 
 ### Azure RBAC _[Preferred]_
 
-If you are using a single tenant for this walk-through, the cluster deployment step later will take care of the necessary role assignments for the groups created above. Specifically, in the above steps, you created the Azure AD security group `cluster-ns-a0008-readers-bu0001a000800` that is going to be a namespace reader in namespace `a0008` and the Azure AD security group `cluster-admins-bu0001a000800` is going to contain cluster admins. Those group Object IDs will be associated to the 'Azure Kubernetes Service RBAC Reader' and 'Azure Kubernetes Service RBAC Cluster Admin' RBAC role respectively, scoped to their proper level within the cluster.
+If you are using a single tenant for this walk-through, the cluster deployment step later will take care of the necessary role assignments for the groups created above. Specifically, in the above steps, you created the Azure AD security group `cluster-ns-dev-readers-dev` that is going to be a namespace reader in namespace `dev` and the Azure AD security group `cluster-admins-dev` is going to contain cluster admins. Those group Object IDs will be associated to the 'Azure Kubernetes Service RBAC Reader' and 'Azure Kubernetes Service RBAC Cluster Admin' RBAC role respectively, scoped to their proper level within the cluster.
 
 Using Azure RBAC as your authorization approach is ultimately preferred as it allows for the unified management and access control across Azure Resources, AKS, and Kubernetes resources. At the time of this writing there are four [Azure RBAC roles](https://learn.microsoft.com/azure/aks/manage-azure-rbac#create-role-assignments-for-users-to-access-cluster) that represent typical cluster access patterns.
 
